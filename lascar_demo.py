@@ -4,6 +4,9 @@ import numpy as np
 import datetime as dt
 import altair as alt
 
+# Habilitar tema oscuro para Altair
+alt.themes.enable('dark')
+
 st.set_page_config(page_title="Lascar Monitoring", layout="wide")
 
 # -----------------------------
@@ -229,6 +232,7 @@ if page == "Dashboard":
                 ]
             )
             .interactive()
+            .properties(background='transparent')
         )
         st.altair_chart(chart_solar, use_container_width=True)
 
@@ -241,7 +245,8 @@ if page == "Dashboard":
             color=alt.Color('battery_soc', scale=alt.Scale(range=['#e74c3c', '#f1c40f', '#2ecc71']), legend=None),
             tooltip=['station', alt.Tooltip('battery_soc', format=".0f") ]
         ).properties(
-            height=250 # Ajustar altura si es necesario
+            height=250,
+            background='transparent'
         )
         st.altair_chart(soc_bars, use_container_width=True)
         
@@ -326,7 +331,12 @@ else:
             y=alt.Y('battery_soc', axis=alt.Axis(title='Battery SOC (%)', titleColor='#2ecc71')),
             tooltip=[alt.Tooltip("timestamp:T", title="Time"), alt.Tooltip("battery_soc:Q", title="SOC (%)", format=".0f")]
         )
-        combined_power_chart = alt.layer(line_solar, line_soc).resolve_scale(y = 'independent').interactive()
+        
+        # Combinar gráficos con ejes Y independientes
+        combined_power_chart = alt.layer(line_solar, line_soc).resolve_scale(
+            y = 'independent'
+        ).interactive().properties(background='transparent')
+        
         st.altair_chart(combined_power_chart, use_container_width=True)
         
     with tab2:
@@ -335,28 +345,30 @@ else:
         
         # Temperatura y Humedad (eje Y izquierdo)
         line_temp = base_env.mark_line(point=False, color='#e74c3c').encode(
-             y=alt.Y('temperature_C', axis=alt.Axis(title='Temp (°C) / Humidity (%)', titleColor='#e74c3c')),
-             tooltip=[alt.Tooltip("timestamp:T", title="Time"), alt.Tooltip("temperature_C:Q", title="Temp (°C)", format=".1f")]
+            y=alt.Y('temperature_C', axis=alt.Axis(title='Temp (°C) / Humidity (%)', titleColor='#e74c3c')),
+            tooltip=[alt.Tooltip("timestamp:T", title="Time"), alt.Tooltip("temperature_C:Q", title="Temp (°C)", format=".1f")]
         ).properties(title='Environmental Conditions & Network Quality')
         line_hum = base_env.mark_line(point=False, color='#3498db', strokeDash=[3,3]).encode(
-             y=alt.Y('humidity_pct', axis=alt.Axis(title='', titleColor='#3498db')), # Eje compartido
-             tooltip=[alt.Tooltip("timestamp:T", title="Time"), alt.Tooltip("humidity_pct:Q", title="Humidity (%)", format=".0f")]
+            y=alt.Y('humidity_pct', axis=alt.Axis(title='')),
+            tooltip=[alt.Tooltip("timestamp:T", title="Time"), alt.Tooltip("humidity_pct:Q", title="Humidity (%)", format=".0f")]
         )
         env_chart = alt.layer(line_temp, line_hum)
         
         # PM2.5 y Ping (eje Y derecho)
         line_pm25 = base_env.mark_line(point=False, color='#95a5a6').encode(
-             y=alt.Y('pm25_ug_m3', axis=alt.Axis(title='PM2.5 (µg/m³) / Ping (ms)', titleColor='#95a5a6')),
-             tooltip=[alt.Tooltip("timestamp:T", title="Time"), alt.Tooltip("pm25_ug_m3:Q", title="PM2.5", format=".0f")]
+            y=alt.Y('pm25_ug_m3', axis=alt.Axis(title='PM2.5 (µg/m³) / Ping (ms)', titleColor='#95a5a6')),
+            tooltip=[alt.Tooltip("timestamp:T", title="Time"), alt.Tooltip("pm25_ug_m3:Q", title="PM2.5", format=".0f")]
         )
         line_ping = base_env.mark_line(point=False, color='#34495e', strokeDash=[3,3]).encode(
-             y=alt.Y('ping_ms', axis=alt.Axis(title='', titleColor='#34495e')), # Eje compartido
-             tooltip=[alt.Tooltip("timestamp:T", title="Time"), alt.Tooltip("ping_ms:Q", title="Ping (ms)", format=".0f")]
+            y=alt.Y('ping_ms', axis=alt.Axis(title=''), scale=alt.Scale(domain=[0, 200])),
+            tooltip=[alt.Tooltip("timestamp:T", title="Time"), alt.Tooltip("ping_ms:Q", title="Ping (ms)", format=".0f")]
         )
         net_chart = alt.layer(line_pm25, line_ping)
 
         # Combinar ambos pares de ejes
-        combined_env_chart = alt.layer(env_chart, net_chart).resolve_scale(y='independent').interactive()
+        combined_env_chart = alt.layer(env_chart, net_chart).resolve_scale(
+            y='independent'
+        ).interactive().properties(background='transparent')
         st.altair_chart(combined_env_chart, use_container_width=True)
         
 
